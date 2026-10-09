@@ -1,9 +1,11 @@
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl = 'http://127.0.0.1:5000';
 
+  // Student signup
   static Future<Map<String, dynamic>> signup({
     required String name,
     required String email,
@@ -35,6 +37,7 @@ class ApiService {
     };
   }
 
+  // User login
   static Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -48,6 +51,25 @@ class ApiService {
         'email': email,
         'password': password,
       }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'statusCode': response.statusCode,
+      'data': data,
+    };
+  }
+
+  // Fetch schools using the logged-in user's token
+  static Future<Map<String, dynamic>> getSchools({
+    required String token,
+  }) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/schools'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
     );
 
     final data = jsonDecode(response.body);

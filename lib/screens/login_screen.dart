@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'dashboard_screen.dart';
+import 'admin_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -47,19 +48,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (statusCode == 200) {
         final user = data['user'];
+        final token = data['token'];
 
         setState(() {
           isLoading = false;
         });
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DashboardScreen(
-              user: user,
-            ),
-          ),
-        );
+        final role = user['role']?.toString() ?? 'student';
+
+          if (role == 'admin') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => AdminDashboardScreen(
+                  user: user,
+                  token: token.toString(),
+                ),
+              ),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DashboardScreen(user: user),
+              ),
+            );
+          }
       } else {
         setState(() {
           isLoading = false;

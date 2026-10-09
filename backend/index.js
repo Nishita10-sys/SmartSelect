@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
+const schoolRoutes = require('./routes/schoolRoutes');
 
 const app = express();
 
@@ -12,10 +13,11 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/schools', schoolRoutes);
 
 app.get('/', (req, res) => {
   res.json({
-    message: 'SmartSelect Backend is running'
+    message: 'SmartSelect Backend is running',
   });
 });
 
