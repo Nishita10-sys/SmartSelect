@@ -3,6 +3,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Faculty = require('../models/Faculty');
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ router.post('/signup', async (req, res) => {
       enrollmentNumber,
       branch,
       specialization,
-      password
+      password,
     } = req.body;
 
     if (
@@ -27,7 +28,7 @@ router.post('/signup', async (req, res) => {
       !password
     ) {
       return res.status(400).json({
-        message: 'All fields are required'
+        message: 'All fields are required',
       });
     }
 
@@ -36,13 +37,13 @@ router.post('/signup', async (req, res) => {
     const existingUser = await User.findOne({
       $or: [
         { email: normalizedEmail },
-        { enrollmentNumber: enrollmentNumber.trim() }
-      ]
+        { enrollmentNumber: enrollmentNumber.trim() },
+      ],
     });
 
     if (existingUser) {
       return res.status(409).json({
-        message: 'Email or enrollment number already registered'
+        message: 'Email or enrollment number already registered',
       });
     }
 
@@ -55,7 +56,7 @@ router.post('/signup', async (req, res) => {
       branch: branch.trim(),
       specialization: specialization.trim(),
       password: hashedPassword,
-      role: 'student'
+      role: 'student',
     });
 
     await user.save();
@@ -69,14 +70,14 @@ router.post('/signup', async (req, res) => {
         enrollmentNumber: user.enrollmentNumber,
         branch: user.branch,
         specialization: user.specialization,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error('Signup error:', error.message);
 
     return res.status(500).json({
-      message: 'Server error'
+      message: 'Server error',
     });
   }
 });
@@ -88,48 +89,101 @@ router.post('/login', async (req, res) => {
 
     if (!email || !password) {
       return res.status(400).json({
-        message: 'Email and password are required'
+        message: 'Email and password are required',
       });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
 
+    // First, search the User collection (students and admins).
     const user = await User.findOne({
-      email: normalizedEmail
+      email: normalizedEmail,
     });
 
-    if (!user) {
-      return res.status(401).json({
-        message: 'Invalid email or password'
+    if (user) {
+      if (user.isActive === false) {
+        return res.status(403).json({
+          message:
+            'Your account has been disabled. Contact the administrator.',
+        });
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        user.password
+      );
+
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          message: 'Invalid email or password',
+        });
+      }
+
+      const token = jwt.sign(
+        {
+          userId: user._id.toString(),
+          email: user.email,
+          role: user.role,
+        },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: '7d',
+        }
+      );
+
+      return res.status(200).json({
+        message: 'Login successful',
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          enrollmentNumber: user.enrollmentNumber,
+          branch: user.branch,
+          specialization: user.specialization,
+          role: user.role,
+        },
       });
     }
 
-    if (user.isActive === false) {
+    // If not found, search the separate Faculty collection.
+    const faculty = await Faculty.findOne({
+      email: normalizedEmail,
+    });
+
+    if (!faculty) {
+      return res.status(401).json({
+        message: 'Invalid email or password',
+      });
+    }
+
+    if (faculty.isActive === false) {
       return res.status(403).json({
-        message: 'Your account has been disabled. Contact the administrator.'
+        message:
+          'Your account has been disabled. Contact the administrator.',
       });
     }
 
     const isPasswordValid = await bcrypt.compare(
       password,
-      user.password
+      faculty.password
     );
 
     if (!isPasswordValid) {
       return res.status(401).json({
-        message: 'Invalid email or password'
+        message: 'Invalid email or password',
       });
     }
 
     const token = jwt.sign(
       {
-        userId: user._id.toString(),
-        email: user.email,
-        role: user.role
+        userId: faculty._id.toString(),
+        email: faculty.email,
+        role: faculty.role,
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: '7d'
+        expiresIn: '7d',
       }
     );
 
@@ -137,20 +191,21 @@ router.post('/login', async (req, res) => {
       message: 'Login successful',
       token,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        enrollmentNumber: user.enrollmentNumber,
-        branch: user.branch,
-        specialization: user.specialization,
-        role: user.role
-      }
+        id: faculty._id,
+        name: faculty.name,
+        email: faculty.email,
+        employeeId: faculty.employeeId,
+        department: faculty.department,
+        specialization: faculty.specialization,
+        schoolId: faculty.schoolId,
+        role: faculty.role,
+      },
     });
   } catch (error) {
     console.error('Login error:', error.message);
 
     return res.status(500).json({
-      message: 'Server error'
+      message: 'Server error',
     });
   }
 });

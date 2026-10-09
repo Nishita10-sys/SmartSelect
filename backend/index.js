@@ -2,6 +2,8 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const facultyRoutes = require('./routes/facultyRoutes');
+const electiveRoutes = require('./routes/electiveRoutes');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -14,6 +16,8 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/schools', schoolRoutes);
+app.use('/api/faculty', facultyRoutes);
+app.use('/api/electives', electiveRoutes);
 
 app.get('/', (req, res) => {
   res.json({

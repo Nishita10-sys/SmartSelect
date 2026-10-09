@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'faculty_management_screen.dart';
+import 'elective_management_screen.dart';
 
 class SchoolManagementScreen extends StatelessWidget {
   final Map<String, dynamic> school;
@@ -93,10 +95,13 @@ class SchoolManagementScreen extends StatelessWidget {
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Faculty management will be implemented next.',
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FacultyManagementScreen(
+                            school: school,
+                            user: user,
+                            token: token,
                           ),
                         ),
                       );
@@ -137,11 +142,15 @@ class SchoolManagementScreen extends StatelessWidget {
                       ),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios),
+                    
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Elective management will be implemented later.',
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ElectiveManagementScreen(
+                            school: school,
+                            user: user,
+                            token: token,
                           ),
                         ),
                       );
