@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import 'dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -41,26 +42,37 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      setState(() {
-        isLoading = false;
-      });
-
       final statusCode = result['statusCode'];
       final data = result['data'];
 
-      String message;
-
       if (statusCode == 200) {
-        message = data['message'] ?? 'Login successful';
-      } else {
-        message = data['message'] ?? 'Login failed';
-      }
+        final user = data['user'];
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-        ),
-      );
+        setState(() {
+          isLoading = false;
+        });
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DashboardScreen(
+              user: user,
+            ),
+          ),
+        );
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              data['message'] ?? 'Login failed',
+            ),
+          ),
+        );
+      }
     } catch (error) {
       if (!mounted) return;
 
@@ -120,9 +132,9 @@ class _LoginScreenState extends State<LoginScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFFE8E9FF),
-              Color(0xFFF5F0FF),
-              Color(0xFFE6F5FF),
+              Color.fromARGB(182, 129, 185, 228),
+              Color.fromARGB(255, 183, 210, 235),
+              Color(0xFF8EC5E8),
             ],
           ),
         ),
@@ -138,7 +150,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 20),
 
-                    // Back button
                     Align(
                       alignment: Alignment.centerLeft,
                       child: IconButton(
@@ -154,7 +165,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 10),
 
-                    // Logo
                     Container(
                       height: 82,
                       width: 82,
@@ -207,7 +217,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 30),
 
-                    // Glass card
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(30),
@@ -236,9 +245,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         key: _formKey,
                         child: Column(
                           children: [
-                            Align(
+                            const Align(
                               alignment: Alignment.centerLeft,
-                              child: const Text(
+                              child: Text(
                                 'Account Login',
                                 style: TextStyle(
                                   fontSize: 21,
@@ -250,7 +259,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             const SizedBox(height: 22),
 
-                            // Email
                             TextFormField(
                               controller: emailController,
                               keyboardType:
@@ -275,7 +283,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             const SizedBox(height: 18),
 
-                            // Password
                             TextFormField(
                               controller: passwordController,
                               obscureText: obscurePassword,
@@ -287,10 +294,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   icon: Icon(
                                     obscurePassword
                                         ? Icons.visibility_outlined
-                                        : Icons
-                                            .visibility_off_outlined,
-                                    color:
-                                        const Color(0xFF6366F1),
+                                        : Icons.visibility_off_outlined,
+                                    color: const Color(0xFF6366F1),
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -312,7 +317,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             const SizedBox(height: 28),
 
-                            // Login button
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
@@ -352,8 +356,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         'Login',
                                         style: TextStyle(
                                           fontSize: 16,
-                                          fontWeight:
-                                              FontWeight.bold,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
                               ),
