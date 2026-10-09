@@ -1,3 +1,4 @@
+
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -5,7 +6,7 @@ const User = require('../models/User');
 
 const router = express.Router();
 
-// Signup
+// Student signup
 router.post('/signup', async (req, res) => {
   try {
     const {
@@ -30,10 +31,12 @@ router.post('/signup', async (req, res) => {
       });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     const existingUser = await User.findOne({
       $or: [
-        { email: email.toLowerCase() },
-        { enrollmentNumber: enrollmentNumber }
+        { email: normalizedEmail },
+        { enrollmentNumber: enrollmentNumber.trim() }
       ]
     });
 
@@ -46,17 +49,18 @@ router.post('/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new User({
-      name,
-      email: email.toLowerCase(),
-      enrollmentNumber,
-      branch,
-      specialization,
-      password: hashedPassword
+      name: name.trim(),
+      email: normalizedEmail,
+      enrollmentNumber: enrollmentNumber.trim(),
+      branch: branch.trim(),
+      specialization: specialization.trim(),
+      password: hashedPassword,
+      role: 'student'
     });
 
     await user.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Account created successfully',
       user: {
         id: user._id,
@@ -64,19 +68,20 @@ router.post('/signup', async (req, res) => {
         email: user.email,
         enrollmentNumber: user.enrollmentNumber,
         branch: user.branch,
-        specialization: user.specialization
+        specialization: user.specialization,
+        role: user.role
       }
     });
   } catch (error) {
     console.error('Signup error:', error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Server error'
     });
   }
 });
 
-// Login
+// Common login for students, faculty, and admin
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -87,13 +92,21 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     const user = await User.findOne({
-      email: email.toLowerCase()
+      email: normalizedEmail
     });
 
     if (!user) {
       return res.status(401).json({
         message: 'Invalid email or password'
+      });
+    }
+
+    if (user.isActive === false) {
+      return res.status(403).json({
+        message: 'Your account has been disabled. Contact the administrator.'
       });
     }
 
@@ -110,8 +123,9 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign(
       {
-        userId: user._id,
-        email: user.email
+        userId: user._id.toString(),
+        email: user.email,
+        role: user.role
       },
       process.env.JWT_SECRET,
       {
@@ -119,7 +133,7 @@ router.post('/login', async (req, res) => {
       }
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Login successful',
       token,
       user: {
@@ -128,13 +142,14 @@ router.post('/login', async (req, res) => {
         email: user.email,
         enrollmentNumber: user.enrollmentNumber,
         branch: user.branch,
-        specialization: user.specialization
+        specialization: user.specialization,
+        role: user.role
       }
     });
   } catch (error) {
     console.error('Login error:', error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Server error'
     });
   }
