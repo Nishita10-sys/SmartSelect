@@ -61,7 +61,7 @@ class ApiService {
     };
   }
 
-  // Fetch schools using the logged-in user's token
+  // Fetch all active schools
   static Future<Map<String, dynamic>> getSchools({
     required String token,
   }) async {
@@ -79,7 +79,26 @@ class ApiService {
       'data': data,
     };
   }
-  
+
+  // Fetch admin dashboard statistics
+  static Future<Map<String, dynamic>> getDashboardStats({
+    required String token,
+  }) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/schools/stats'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'statusCode': response.statusCode,
+      'data': data,
+    };
+  }
+
   // Fetch faculty members for a school
   static Future<Map<String, dynamic>> getFaculty({
     required String token,
@@ -136,8 +155,6 @@ class ApiService {
     };
   }
 
-
-  
   // Fetch electives for a school
   static Future<Map<String, dynamic>> getElectives({
     required String token,
