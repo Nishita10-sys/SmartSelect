@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 class ApiService {
   static const String baseUrl = 'http://127.0.0.1:5000';
 
-  // Student signup
   static Future<Map<String, dynamic>> signup({
     required String name,
     required String email,
@@ -16,9 +15,7 @@ class ApiService {
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/auth/signup'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'name': name,
         'email': email,
@@ -37,16 +34,13 @@ class ApiService {
     };
   }
 
-  // User login
   static Future<Map<String, dynamic>> login({
     required String email,
     required String password,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/auth/login'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'email': email,
         'password': password,
@@ -61,15 +55,12 @@ class ApiService {
     };
   }
 
-  // Fetch all active schools
   static Future<Map<String, dynamic>> getSchools({
     required String token,
   }) async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/schools'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     final data = jsonDecode(response.body);
@@ -80,15 +71,12 @@ class ApiService {
     };
   }
 
-  // Fetch admin dashboard statistics
   static Future<Map<String, dynamic>> getDashboardStats({
     required String token,
   }) async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/schools/stats'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     final data = jsonDecode(response.body);
@@ -99,16 +87,13 @@ class ApiService {
     };
   }
 
-  // Fetch faculty members for a school
   static Future<Map<String, dynamic>> getFaculty({
     required String token,
     required String schoolId,
   }) async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/faculty/school/$schoolId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     final data = jsonDecode(response.body);
@@ -119,7 +104,6 @@ class ApiService {
     };
   }
 
-  // Register a faculty member
   static Future<Map<String, dynamic>> addFaculty({
     required String token,
     required String name,
@@ -155,16 +139,13 @@ class ApiService {
     };
   }
 
-  // Fetch electives for a school
   static Future<Map<String, dynamic>> getElectives({
     required String token,
     required String schoolId,
   }) async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/electives/school/$schoolId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     final data = jsonDecode(response.body);
@@ -175,7 +156,23 @@ class ApiService {
     };
   }
 
-  // Create an elective
+  // Get only the electives created by the logged-in faculty member.
+  static Future<Map<String, dynamic>> getMyElectives({
+    required String token,
+  }) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/electives/mine'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'statusCode': response.statusCode,
+      'data': data,
+    };
+  }
+
   static Future<Map<String, dynamic>> addElective({
     required String token,
     required String subjectName,
